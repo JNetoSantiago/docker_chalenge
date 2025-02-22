@@ -3,7 +3,7 @@ services:
   chalenge_docker:
     build: .
     container_name: chalenge_docker
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0 -p 3000"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0 -p 3000"
     volumes:
       - .:/app
     env_file:
@@ -11,8 +11,10 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - postgres_chalenge
-      - redis_chalenge
+      postgres_chalenge:
+        condition: service_healthy
+      redis_chalenge:
+        condition: service_started
 
   sidekiq_chalenge:
     build: .
@@ -23,8 +25,10 @@ services:
     env_file:
       - '.env'
     depends_on:
-      - postgres_chalenge
-      - redis_chalenge
+      postgres_chalenge:
+        condition: service_healthy
+      redis_chalenge:
+        condition: service_started
 
   postgres_chalenge:
     container_name: chalenge_pg
@@ -35,6 +39,10 @@ services:
       - ./data/pg:/var/lib/postgresql/data
     env_file:
       - '.env'
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
 
   
   redis_chalenge:
