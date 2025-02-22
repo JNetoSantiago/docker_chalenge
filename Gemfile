@@ -64,6 +64,5 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem 'dotenv'
 gem "sidekiq"
 gem "redis", ">= 4.0.1"
